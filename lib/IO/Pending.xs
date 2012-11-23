@@ -13,12 +13,19 @@ int
 pending_read (f)
         InputStream f
     PPCODE:
+        int hascnt = 0;
         if (!PerlIOValid(f)) XSRETURN_UNDEF;
+
         for (; PerlIOValid(f); f = PerlIONext(f)) {
-            if (PerlIO_has_cntptr(f) && PerlIO_get_cnt(f))
+            if (PerlIO_has_cntptr(f))
+                hascnt = 1;
+            else
+                continue;
+            if (PerlIO_get_cnt(f))
                 XSRETURN_YES;
         }
-        XSRETURN_NO;
+        if (hascnt) XSRETURN_NO;
+        else        XSRETURN_UNDEF;
 
 int
 pending_write (f)
