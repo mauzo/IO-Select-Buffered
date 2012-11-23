@@ -3,6 +3,9 @@ use Module::Build;
 Module::Build->new(
     module_name		=> "IO::Select::Buffered",
     license		=> "bsd",
+    requires            => {
+        perl                => "5.8.1",
+    },
     configure_requires	=> {
 	"Module::Build"	    => "0.38",
     },

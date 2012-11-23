@@ -1,6 +1,6 @@
 package IO::Pending;
 
-use 5.010;
+use 5.008001;
 use warnings;
 use strict;
 
