@@ -1,7 +1,7 @@
 use Module::Build;
 
 Module::Build->new(
-    module_name		=> "IO::Pending",
+    module_name		=> "IO::Select::Buffered",
     license		=> "bsd",
     configure_requires	=> {
 	"Module::Build"	    => "0.38",
@@ -11,9 +11,9 @@ Module::Build->new(
     },
     meta_merge		=> {
 	resources   => {
-	    repository => "http://github.com/mauzo/IO-Pending",
+	    repository => "http://github.com/mauzo/IO-Select-Buffered",
 	    bugtracker => "https://rt.cpan.org/Public/Dist/" .
-		"Display.html?Name=IO-Pending",
+		"Display.html?Name=IO-Select-Buffered",
 	},
     },
 )->create_build_script;
