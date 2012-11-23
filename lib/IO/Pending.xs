@@ -3,18 +3,23 @@
 #include "XSUB.h"
 #include "perliol.h"
 
-/* The standard typemap wants these typedefs */
-typedef PerlIO *InputStream;
-typedef PerlIO *OutputStream;
-
 MODULE = IO::Pending  PACKAGE = IO::Pending
 
 int
-pending_read (f)
-        InputStream f
+pending_read (sv)
+        SV *sv
     PPCODE:
-        int hascnt = 0;
-        if (!PerlIOValid(f)) XSRETURN_UNDEF;
+        IO      *io;
+        PerlIO  *f;
+        int     hascnt = 0;
+
+        if (!(io = sv_2io(sv)) ||
+            mg_find((SV *)io, PERL_MAGIC_tiedscalar) ||
+            !(f = IoIFP(io)) ||
+            !PerlIOValid(f) ||
+            !(PerlIOBase(f)->flags & PERLIO_F_CANREAD)
+        )
+            XSRETURN_UNDEF;
 
         for (; PerlIOValid(f); f = PerlIONext(f)) {
             if (PerlIO_has_cntptr(f))
@@ -28,10 +33,20 @@ pending_read (f)
         else        XSRETURN_UNDEF;
 
 int
-pending_write (f)
-        OutputStream f
+pending_write (sv)
+        SV *sv
     PPCODE:
-        if (!PerlIOValid(f)) XSRETURN_UNDEF;
+        IO      *io;
+        PerlIO  *f;
+
+        if (!(io = sv_2io(sv)) ||
+            mg_find((SV *)io, PERL_MAGIC_tiedscalar) ||
+            !(f = IoOFP(io)) ||
+            !PerlIOValid(f) ||
+            !(PerlIOBase(f)->flags & PERLIO_F_CANWRITE)
+        )
+            XSRETURN_UNDEF;
+
         for (; PerlIOValid(f); f = PerlIONext(f)) {
             if (PerlIOBase(f)->flags & PERLIO_F_WRBUF)
                 XSRETURN_YES;
@@ -39,11 +54,21 @@ pending_write (f)
         XSRETURN_NO;
 
 int
-pending_bytes (f)
-        InputStream f
-    CODE:
-        if (!PerlIOValid(f) || !PerlIO_has_cntptr(f))
+pending_bytes (sv)
+        SV *sv
+    PREINIT:
+        IO      *io;
+        PerlIO  *f;
+    INIT:
+        if (!(io = sv_2io(sv)) ||
+            mg_find((SV *)io, PERL_MAGIC_tiedscalar) ||
+            !(f = IoIFP(io)) ||
+            !PerlIOValid(f) ||
+            !(PerlIOBase(f)->flags & PERLIO_F_CANREAD) ||
+            !PerlIO_has_cntptr(f)
+        )
             XSRETURN_UNDEF;
+    CODE:
         RETVAL = PerlIO_get_cnt(f);
     OUTPUT:
         RETVAL
