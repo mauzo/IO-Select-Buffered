@@ -5,6 +5,8 @@ Module::Build->new(
     license		=> "bsd",
     requires            => {
         perl                => "5.8.1",
+        parent              => 0,
+        "Scalar::Util"      => "1.07",
     },
     configure_requires	=> {
 	"Module::Build"	    => "0.38",
