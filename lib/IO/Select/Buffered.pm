@@ -18,7 +18,7 @@ sub add {
         Carp::croak sprintf "Bad filehandle%s: %s",
             (@bad > 1 ? "s" : ""), join ", ", @bad;
     }
-    $vec->SUPER::add(@fhs);
+    $vec->IO::Select::add(@fhs);
 }
 
 sub can_read {
@@ -27,8 +27,10 @@ sub can_read {
     if (my @h = grep pending_read($_), $vec->handles) {
         return @h;
     }
-    $vec->SUPER::can_read($timeout);
+    $vec->IO::Select::can_read($timeout);
 }
+
+sub can_sysread { $_[0]->IO::Select::can_read($_[1]) }
 
 sub can_flush {
     my ($vec, $timeout) = @_;
@@ -37,6 +39,21 @@ sub can_flush {
         or return;
     my $sel = IO::Select->new(@h);
     $sel->can_write($timeout);
+}
+
+sub select {
+    my (undef, $r, $w, $e, $t) = @_;
+
+    # if we have pending reads, just return them
+    if ($r and my @r = grep pending_read($_), $r->handles) {
+        return \@r, [], [];
+    }
+
+    $w and $w = IO::Select->new(
+        grep pending_write($_), $w->handles
+    );
+
+    IO::Select->select($r, $w, $e, $t);
 }
 
 1;
